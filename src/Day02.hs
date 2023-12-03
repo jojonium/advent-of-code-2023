@@ -44,8 +44,15 @@ part1 (Game i bs)
   | all (\(Balls r g b) -> r <= 12 && g <= 13 && b <= 14) bs = i
   | otherwise = 0
 
+part2 :: Game -> Int
+part2 (Game _ bs) = reds * greens * blues
+  where reds   = maximum (map red bs)
+        greens = maximum (map green bs)
+        blues  = maximum (map blue bs)
+
 main :: IO ()
 main = do
   games <- map parse . lines <$> getInput "inputs/day02.txt"
   putStrLn $ "Part 1: " ++ show (sum (map part1 games))
+  putStrLn $ "Part 2: " ++ show (sum (map part2 games))
 
