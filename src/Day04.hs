@@ -1,8 +1,8 @@
 module Day04 (main) where
 
 import System.Environment (getArgs)
-import Data.List.Split (splitOn)
-import Data.List (intersect)
+import Data.List.Split (splitOneOf)
+import Data.List (intersect, foldl')
 import qualified Data.Map as Map
 
 getInput :: String -> IO String
@@ -10,39 +10,23 @@ getInput defFile = do
   args <- getArgs
   readFile (case args of [] -> defFile; x:_ -> x)
 
-data Card = Card
-  { _id      :: Int
-  , _winning :: [Int]
-  , _have    :: [Int]
-  } deriving Show
-
 main :: IO ()
 main = do
-  cards <- map parse . lines <$> getInput "inputs/day04.txt"
-  putStrLn $ "Part 1: " ++ show (sum (map score1 cards))
-  putStrLn $ "Part 2: " ++ show (part2 cards)
+  input <- getInput "inputs/day04.txt"
+  let (p1, p2) = solve input
+  putStrLn $ "Part 1: " ++ show p1
+  putStrLn $ "Part 2: " ++ show p2
 
-parse :: String -> Card
-parse s = Card num w h
-  where num    = read (take 3 (drop 5 s))
-        (w, h) = case map (map read . words) (splitOn " | " (drop 10 s)) of
-                   (a:b:_) -> (a, b)
-                   _       -> error "Invalid line"
+solve :: String -> (Int, Int)
+solve input = (part1, part2)
+  where parse s = case map (map read . words) (splitOneOf "|:" s) :: [[Int]] of
+                    (_:a:b:_) -> length (a `intersect` b)
+                    _         -> error "Invalid line"
+        matches = zip [1..] (map parse (lines input))
+        score n = if n > 0 then 2 ^ (n - 1) else 0
+        part1   = sum (map (score . snd) matches)
+        part2   = Map.foldr (+) 0 (foldl' (\m (i, n) ->
+            let copy j = Map.insertWith (+) j (m Map.! i)
+            in  foldr copy m [(i + 1) .. (min (i + n) (length input))]
+          ) (Map.fromList [(i, 1) | i <- [1 .. length input]]) matches)
 
-score1 :: Card -> Int
-score1 (Card _ winning have)
-  | matches > 0 = 2 ^ (matches - 1)
-  | otherwise   = 0
-  where matches = length (winning `intersect` have)
-
-part2  :: [Card] -> Int
-part2 cards = score2 cards initMap (length cards)
-  where initMap = Map.fromList (map (\c -> (_id c, 1)) cards)
-
-score2 :: [Card] -> Map.Map Int Int -> Int -> Int
-score2 [] m _ = Map.foldr (+) 0 m
-score2 ((Card cid winning have):cards) m end = score2 cards m' end
-  where matches = length (winning `intersect` have)
-        copies  = m Map.! cid
-        m'      = foldl f m [(cid + 1) .. (min (cid + matches) end)]
-        f ts i  = Map.insertWith (+) i copies ts
