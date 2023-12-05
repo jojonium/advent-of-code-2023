@@ -28,6 +28,7 @@ library
       Day02
       Day03
       Day04
+      Day05
   other-modules:
       Paths_aoc2023
   hs-source-dirs:
@@ -36,5 +37,6 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , range
     , split
   default-language: Haskell2010
