@@ -8,7 +8,7 @@ main = do
 
 solve :: [Double] -> [Double] -> Int
 solve ts ds = product 
-  [ 1 + ceiling ((t + sqrt (t * t - 4 * d)) / 2 - 1) -
-        floor   ((t - sqrt (t * t - 4 * d)) / 2 + 1)
+  [ ceiling ((t + sqrt (t * t - 4 * d)) / 2 - 1) -
+    floor   ((t - sqrt (t * t - 4 * d)) / 2 + 1) + 1
   | (t, d) <- zip ts ds]
   
