@@ -2,15 +2,9 @@
 
 My solutions to [Advent of Code 2023](https://adventofcode.com/2023) in Haskell.
 
-To run the solutions for a day, do this:
+To run the solutions for a day, pipe the input into stdin like this:
 
 ```
-$ stack runghc src/Day01.hs
+$ stack runghc src/Day01.hs < inputs/day01.txt
 ```
 
-You can optionally specify a different input file from the default for that day
-like this:
-
-```
-$ stack runghc src/Day01.hs my-other-input.txt
-```

@@ -1,18 +1,12 @@
 module Day04 (main) where
 
-import System.Environment (getArgs)
 import Data.List.Split (splitOneOf)
 import Data.List (intersect, foldl')
 import qualified Data.Map as Map
 
-getInput :: String -> IO String
-getInput defFile = do
-  args <- getArgs
-  readFile (case args of [] -> defFile; x:_ -> x)
-
 main :: IO ()
 main = do
-  input <- getInput "inputs/day04.txt"
+  input <- getContents
   let (p1, p2) = solve input
   putStrLn $ "Part 1: " ++ show p1
   putStrLn $ "Part 2: " ++ show p2

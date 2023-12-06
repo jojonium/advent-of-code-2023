@@ -1,20 +1,14 @@
 module Day03 (main) where
 
-import System.Environment (getArgs)
 import Data.Char (isDigit)
 import qualified Data.Map as Map
 
 type Coord = (Int, Int)
 type Chart = Map.Map Coord Char
 
-getInput :: String -> IO String
-getInput defFile = do
-  args <- getArgs
-  readFile (case args of [] -> defFile; x:_ -> x)
-
 main :: IO ()
 main = do
-  input <- lines <$> getInput "inputs/day03.txt"
+  input <- lines <$> getContents
   let (part1, part2) = solve input
   putStrLn $ "Part 1: " ++ show part1
   putStrLn $ "Part 2: " ++ show part2

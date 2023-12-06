@@ -1,13 +1,7 @@
 module Day02 (main) where
 
-import System.Environment (getArgs)
 import Data.List.Split (splitOn)
 import qualified Data.Map as Map
-
-getInput :: String -> IO String
-getInput defFile = do
-  args <- getArgs
-  readFile (case args of [] -> defFile; x:_ -> x)
 
 data Balls = Balls
   { red   :: Int
@@ -52,7 +46,7 @@ part2 (Game _ bs) = reds * greens * blues
 
 main :: IO ()
 main = do
-  games <- map parse . lines <$> getInput "inputs/day02.txt"
+  games <- map parse . lines <$> getContents
   putStrLn $ "Part 1: " ++ show (sum (map part1 games))
   putStrLn $ "Part 2: " ++ show (sum (map part2 games))
 

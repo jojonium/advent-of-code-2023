@@ -1,15 +1,8 @@
 module Day06 (main) where
 
-import System.Environment (getArgs)
-
-getInput :: String -> IO String
-getInput defFile = do
-  args <- getArgs
-  readFile (case args of [] -> defFile; x:_ -> x)
-
 main :: IO ()
 main = do
-  input <- map (drop 1 . words) .  lines <$> getInput "inputs/day06.txt"
+  input <- map (drop 1 . words) . lines <$> getContents
   let times     = map read $ head input
       distances = map read $ input !! 1
       p2Time    = read (concat (head input))

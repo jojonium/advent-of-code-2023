@@ -1,18 +1,12 @@
 module Day05 (main) where
 
-import System.Environment (getArgs)
 import Data.List.Split (splitOn, chunksOf)
-
-getInput :: String -> IO String
-getInput defFile = do
-  args <- getArgs
-  readFile (case args of [] -> defFile; x:_ -> x)
 
 type Range = (Int, Int)
 
 main :: IO ()
 main = do
-  paras <- splitOn "\n\n" <$> getInput "inputs/day05.txt"
+  paras <- splitOn "\n\n" <$> getContents
   let seeds  = map read $ drop 1 (words (head paras))
       maps   = map (map (map read . words) . drop 1 . lines) (drop 1 paras)
       p1Seeds = map (toRange . (:[])) seeds

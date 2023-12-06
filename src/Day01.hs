@@ -1,17 +1,11 @@
 module Day01 (main) where
 
-import System.Environment (getArgs)
 import Data.Char (isDigit)
 import Data.List (isPrefixOf)
 
-getInput :: String -> IO String
-getInput defFile = do
-  args <- getArgs
-  readFile (case args of [] -> defFile; x:_ -> x)
-
 main :: IO ()
 main = do
-  input <- lines <$> getInput "inputs/day01.txt"
+  input <- lines <$> getContents
   putStrLn $ "Part 1: " ++ show (solve part1 input)
   putStrLn $ "Part 2: " ++ show (solve part2 input)
 
