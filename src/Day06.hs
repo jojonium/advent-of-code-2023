@@ -10,9 +10,8 @@ main = do
   putStrLn $ "Part 1: " ++ show (solve times distances)
   putStrLn $ "Part 2: " ++ show (solve [p2Time] [p2Dist])
 
-solve :: [Int] -> [Int] -> Int
-solve ts ds = product
-  [waysToWin (fromIntegral t) (fromIntegral d) | (t, d) <- zip ts ds]
+solve :: [Double] -> [Double] -> Int
+solve ts ds = product [waysToWin t d | (t, d) <- zip ts ds]
   
 waysToWin :: Double -> Double -> Int
 waysToWin t d = (upper - lower) + 1
