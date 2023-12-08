@@ -1,4 +1,4 @@
-module Day07 (main) where
+module Day08 (main) where
 
 import Control.Arrow ((&&&), (***), first)
 import qualified Data.Map as Map
