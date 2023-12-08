@@ -1,6 +1,7 @@
 module Day07 (main) where
 
-import Data.List (elemIndex, sortBy, sortOn)
+import Control.Arrow ((&&&))
+import Data.List (elemIndex, group, sort, sortBy, sortOn)
 import Data.Ord
 
 main :: IO ()
@@ -37,15 +38,15 @@ newtype Hand = Hand String deriving (Eq, Show)
 
 instance AHand Hand where
   handType (Hand s) = case sortBy (comparing Down) counts of
-      (5:_)       -> FiveKind
-      (4:_)       -> FourKind
-      (3:3:3:2:_) -> FullHouse
-      (3:_)       -> ThreeKind
-      (2:2:2:2:_) -> TwoPair
-      (2:_)       -> OnePair
-      (1:_)       -> HighCard
+      (5:_)   -> FiveKind
+      (4:_)   -> FourKind
+      (3:2:_) -> FullHouse
+      (3:_)   -> ThreeKind
+      (2:2:_) -> TwoPair
+      (2:_)   -> OnePair
+      (1:_)   -> HighCard
       _ -> error "Unknown hand type!"
-    where counts = map (\x -> length (filter (==x) s)) s
+    where counts = (sortOn Down . map length . group . sort) s
   contents (Hand s) = s
 
 instance Ord Hand where compare = compareHands "23456789TJQKA"
@@ -54,8 +55,9 @@ instance Ord Hand where compare = compareHands "23456789TJQKA"
 newtype Hand2 = Hand2 String deriving (Eq, Show)
 
 instance AHand Hand2 where
-  handType (Hand2 s) = maximum $ map (handType . Hand . try) "123456789TQKA"
-    where try r = map (\x -> if x == 'J' then r else x) s
+  handType (Hand2 s) = handType (Hand (map (\x -> if x == 'J' then c else x) s))
+    where counts = (map fst . sortOn (Down . snd) . map (head &&& length) . group . sort) s
+          c = case counts of ('J':x:_) -> x; (x:_) -> x; _ -> error "Illegal hand!"
   contents (Hand2 s) = s
 
 instance Ord Hand2 where compare = compareHands "J23456789TQKA"
