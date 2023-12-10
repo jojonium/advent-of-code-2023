@@ -4,7 +4,7 @@ import qualified Data.Map as Map
 
 main :: IO ()
 main = do
-  (chart, s) <- parse .lines <$> getContents
+  (chart, s) <- parse . lines <$> getContents
   let (nbrs, sChar) = sNeighbors chart s
       memos         = map (solve chart (Map.fromList [(s, 0)]) 0) nbrs
       joined        = foldr1 (Map.unionWith min) memos
@@ -26,7 +26,7 @@ parse ls = foldr folder (Map.empty, (0, 0)) [(x, y) | x <- xs, y <- ys]
           where p  = ls !! y !! x
                 c' = if p == 'S' then (x, y) else c
 
--- Figure out what char S must be covering and it and S's neighbors
+-- Figure out what char S must be covering, return it and S's neighbors
 sNeighbors :: Chart -> Coord -> ([(Coord, Dir)], Char)
 sNeighbors chart (x, y)
   | north && south = ([northN, southN], '|')
@@ -61,6 +61,7 @@ next chart ((x, y), facing) = case (chart Map.! (x, y), facing) of
   ('F', West ) -> ((x, y + 1), South)
   _ -> error $ "Invalid combination! " ++ show (x, y) ++ ", " ++ show facing
 
+-- Traverse the pipe in one direction.
 solve :: Chart -> Memo -> Int -> (Coord, Dir) -> Memo
 solve chart memo s (cur, facing)
   | cur' `Map.member` memo = memo
@@ -77,8 +78,8 @@ part2 chart solved = filter insideLoop (Map.keys (chart Map.\\ solved))
               hits'  = filter (/='-') (map (chart Map.!) hits)
           in  odd (intersections hits')
 
--- Vertical walls and corners that form U shapes count as intersections,
--- corners that form S or Z shapes don'.
+-- Vertical walls and corners that form S or Z shapes count as intersections,
+-- corners that form U shapes don't.
 intersections :: String -> Int
 intersections ('|':xs)     = 1 + intersections xs
 intersections ('L':'7':xs) = 1 + intersections xs
