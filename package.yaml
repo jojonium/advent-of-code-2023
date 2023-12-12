@@ -22,7 +22,6 @@ dependencies:
 - base >= 4.7 && < 5
 - split
 - containers
-- range
 
 ghc-options:
 - -Wall
