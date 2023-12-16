@@ -3,19 +3,17 @@ module Day16 (main) where
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Control.Monad.State
-import Data.List (nub)
 
 type Coord = (Int, Int)
 data Dir   = North | South | East | West deriving (Show, Eq, Ord)
 type Chart = Map.Map Coord Char
-type Memo  = State (Set.Set (Coord, Dir))
+type Seen  = Map.Map Coord Dir
 
 main :: IO ()
 main = do
   chart <- parse . lines <$> getContents
-  let p1 = evalState (solve chart ((0, 0), East)) Set.empty
-  let p1' = nub $ map fst (Set.toList p1)
-  putStrLn $ "Part 1: " ++ show (length p1')
+  let p1 = evalState (solve chart ((0, 0), East)) Map.empty
+  putStrLn $ "Part 1: " ++ show p1
 
 parse :: [String] -> Chart
 parse ls = foldr folder Map.empty [(x, y) | x <- xs, y <- ys]
@@ -23,19 +21,19 @@ parse ls = foldr folder Map.empty [(x, y) | x <- xs, y <- ys]
         ys = [0 .. length ls - 1]
         folder (x, y) = Map.insert (x, y) (ls !! y !! x)
 
-solve :: Chart -> (Coord, Dir) -> Memo (Set.Set (Coord, Dir))
+solve :: Chart -> (Coord, Dir) -> State Seen Int
 solve chart (coord, dir) = do
-  memo <- get
-  if (coord, dir) `Set.member` memo
-  then return memo
+  seen <- get
+  if Map.lookup coord seen == Just dir
+  then return (Map.size seen)
   else do
-    let memo' = Set.insert (coord, dir) memo
+    let seen' = Map.insert coord dir seen
         nexts = case Map.lookup coord chart of
           Just c  -> next coord dir c
           Nothing -> []
-    put memo'
+    put seen'
     case filter ((`Map.member` chart) . fst) nexts of
-      []  -> do return memo'
+      []  -> do return (Map.size seen')
       [a] -> do solve chart a
       (a:b:_) -> do
         _ <- solve chart a
@@ -74,11 +72,11 @@ showChart chart coord = unlines [[display (x, y) | x <- xs] | y <- ys]
         ys = [0 .. maximum (map (snd . fst) (Map.toList chart))]
         display (a, b) = if (a, b) == coord then 'X' else chart Map.! (a, b)
 
-showMemo :: Set.Set (Coord, Dir) -> String
-showMemo memo = unlines [[if inMemo (x, y) then '#' else '.'| x <- xs] | y <- ys]
-  where xs = [0 .. maximum (map (fst . fst) (Set.toList memo))]
-        ys = [0 .. maximum (map (snd . fst) (Set.toList memo))]
-        inMemo c = (c, North) `Set.member` memo ||
-                   (c, South) `Set.member` memo ||
-                   (c, East)  `Set.member` memo ||
-                   (c, West)  `Set.member` memo
+showSeen :: Set.Set (Coord, Dir) -> String
+showSeen seen = unlines [[if inSeen (x, y) then '#' else '.'| x <- xs] | y <- ys]
+  where xs = [0 .. maximum (map (fst . fst) (Set.toList seen))]
+        ys = [0 .. maximum (map (snd . fst) (Set.toList seen))]
+        inSeen c = (c, North) `Set.member` seen ||
+                   (c, South) `Set.member` seen ||
+                   (c, East)  `Set.member` seen ||
+                   (c, West)  `Set.member` seen
