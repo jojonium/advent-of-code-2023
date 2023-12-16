@@ -11,9 +11,19 @@ type Seen  = Map.Map Coord Dir
 
 main :: IO ()
 main = do
-  chart <- parse . lines <$> getContents
-  let p1 = evalState (solve chart ((0, 0), East)) Map.empty
+  input <- lines <$> getContents
+  let chart     = parse input
+      p1        = evalState (solve chart ((0, 0), East)) Map.empty
+      width     = length (head input)
+      height    = length input
+      topRow    = [((x, 0), South) | x <- [0 .. width - 1]]
+      bottomRow = [((x, height - 1), North) | x <- [0 .. width - 1]]
+      rightSide = [((width - 1, y), West) | y <- [0 .. height - 1]]
+      leftSide  = [((0, y), East) | y <- [0 .. height - 1]]
+      toTry     = topRow ++ bottomRow ++ rightSide ++ leftSide
+      p2        = maximum (map (\s -> evalState (solve chart s) Map.empty) toTry)
   putStrLn $ "Part 1: " ++ show p1
+  putStrLn $ "Part 1: " ++ show p2
 
 parse :: [String] -> Chart
 parse ls = foldr folder Map.empty [(x, y) | x <- xs, y <- ys]
