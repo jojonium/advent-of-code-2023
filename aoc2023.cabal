@@ -40,6 +40,7 @@ library
       Day14
       Day15
       Day16
+      Day17
   other-modules:
       Paths_aoc2023
   hs-source-dirs:
@@ -49,5 +50,6 @@ library
       base >=4.7 && <5
     , containers
     , mtl
+    , search-algorithms
     , split
   default-language: Haskell2010

@@ -23,6 +23,7 @@ dependencies:
 - split
 - containers
 - mtl
+- search-algorithms
 
 ghc-options:
 - -Wall
