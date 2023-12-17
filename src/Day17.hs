@@ -18,11 +18,12 @@ main = do
   let w = length (head input)
       h = length input
       chart = parse input w h
-  case solve chart (w - 1, h - 1) (Pos (0, 0) East 0) of
-    Just (p1, _) -> do
-      putStrLn $ "Part 1: " ++ show p1
+  case solve chart (neighbors w h) (w - 1, h - 1) (Pos (0, 0) East 0) of
+    Just (p1, _) -> do putStrLn $ "Part 1: " ++ show p1
     Nothing -> do putStrLn "Nothing"
-
+  case solve chart (neighbors2 w h) (w - 1, h - 1) (Pos (0, 0) East 0) of
+    Just (p2, _) -> do putStrLn $ "Part 2: " ++ show p2
+    Nothing -> do putStrLn "Nothing"
 
 parse :: [String] -> Int -> Int -> Chart
 parse ls w h = foldr folder Map.empty [(x, y) | x <- xs, y <- ys]
@@ -30,13 +31,19 @@ parse ls w h = foldr folder Map.empty [(x, y) | x <- xs, y <- ys]
         ys = [0 .. h - 1]
         folder (x, y) = Map.insert (x, y) (read [ls !! y !! x])
 
-solve :: Chart -> Coord -> Pos -> Maybe (Int, [Pos])
-solve chart goal = 
-  aStar (neighbors chart) (cost chart) (manhattan goal . pCoord) ((== goal) . pCoord)
+solve :: Chart -> (Pos -> [Pos]) -> Coord -> Pos -> Maybe (Int, [Pos])
+solve chart neighborFunc goal =
+  aStar neighborFunc (cost chart) (manhattan goal . pCoord) ((== goal) . pCoord)
 
-neighbors :: Chart -> Pos -> [Pos]
-neighbors chart pos = filter ((`Map.member` chart) . pCoord) possible
+neighbors :: Int -> Int -> Pos -> [Pos]
+neighbors w h  pos = filter (valid . pCoord) possible
   where possible = left pos : right pos : [straight pos | pStr8 pos < 2]
+        valid (x, y) = x >= 0 && x < w && y >= 0 && y < h
+
+neighbors2 :: Int -> Int -> Pos -> [Pos]
+neighbors2 w h pos@(Pos {pStr8=n}) = filter (valid . pCoord) possible
+  where possible = (if n >= 3 then [left pos, right pos] else []) ++ [straight pos | n < 9]
+        valid (x, y) = x >= 0 && x < w && y >= 0 && y < h
 
 straight :: Pos -> Pos
 straight (Pos (x, y) North n) = Pos (x, y - 1) North (n + 1)
