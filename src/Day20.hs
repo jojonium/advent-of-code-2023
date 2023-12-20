@@ -3,7 +3,6 @@ module Day20 (main) where
 
 import qualified Data.Map as Map
 import Control.Monad.State
-import Debug.Trace (traceShow, trace)
 
 data Pulse = High | Low deriving (Eq, Show)
 type ModMap = Map.Map String Module
@@ -14,21 +13,20 @@ data Module =
   Conjunct { _cMem :: Map.Map String Pulse, _cOutputs :: [String] }
   deriving (Show)
 
-process :: String -> Pulse -> Module -> (Module, [(String, Pulse)])
-process _ p b@(Broadcast outputs) = (b, map (, p) outputs)
-process _ High ff@(FlipFlop _ _) = (ff, [])
-process _ Low ff@(FlipFlop False outputs) = (ff {_fOn = True}, map (, High) outputs)
-process _ Low ff@(FlipFlop True  outputs) = (ff {_fOn = False}, map (, Low) outputs)
-process src p c@(Conjunct mem outputs) = (c {_cMem = mem'}, map (, o) outputs)
+-- source of pulse -> pulse -> my name -> my Module -> (new state, [(from, to, pulse)])
+process :: String -> Pulse -> String -> Module -> (Module, [(String, String, Pulse)])
+process _ p me b@(Broadcast outputs) = (b, map (me, , p) outputs)
+process _ High _ ff@(FlipFlop _ _) = (ff, [])
+process _ Low me ff@(FlipFlop False outputs) = (ff {_fOn = True}, map (me, , High) outputs)
+process _ Low me ff@(FlipFlop True  outputs) = (ff {_fOn = False}, map (me, , Low) outputs)
+process src p me c@(Conjunct mem outputs) = (c {_cMem = mem'}, map (me, , o) outputs)
   where mem' = Map.insert src p mem
-        o    = traceShow mem' $ if all (==High) (Map.elems mem') then Low else High
+        o    = if all (==High) (Map.elems mem') then Low else High
 
 main :: IO ()
 main = do
   modMap <- initConjuncts . parse . lines <$> getContents
-  mapM_ print (Map.toList modMap)
-  putStrLn $ "Part 1: " ++ show (evalState (sendPulses' "button" [("broadcaster", Low)]) (modMap, 0, 0))
-  -- putStrLn $ "Part 1: " ++ show (pushButton modMap 1000)
+  putStrLn $ "Part 1: " ++ show (uncurry (*) (pushButton modMap 1000))
 
 parse :: [String] -> ModMap
 parse = foldr helper Map.empty
@@ -56,21 +54,21 @@ sendsTo str (Broadcast os) = str `elem` os
 sendsTo str (FlipFlop _ os) = str `elem` os
 sendsTo str (Conjunct _ os) = str `elem` os
 
-sendPulses' :: String -> [(String, Pulse)] -> State (ModMap, Int, Int) (ModMap, Int, Int)
-sendPulses' _ [] = do get
-sendPulses' prev ((cur, p):rest) = do
+sendPulses :: [(String, String, Pulse)] -> State (ModMap, Int, Int) (ModMap, Int, Int)
+sendPulses [] = do get
+sendPulses ((from, to, p):rest) = do
   (modMap, lows, highs) <- get
-  let (modMap', next) = case trace (prev ++ " " ++ show p ++ " to " ++ cur) (Map.lookup cur modMap) of
+  let (modMap', next) = case Map.lookup to modMap of
         Nothing -> (modMap, [])
-        Just aMod -> let (mod', ns) = process prev p aMod
-                     in  (Map.insert cur mod' modMap, ns)
+        Just aMod -> let (mod', ns) = process from p to aMod
+                     in  (Map.insert to mod' modMap, ns)
       lows'  = if p == Low  then lows  + 1 else lows
       highs' = if p == High then highs + 1 else highs
   put (modMap', lows', highs')
-  sendPulses' cur (rest ++ next)
+  sendPulses (rest ++ next)
 
 pushButton :: ModMap -> Int -> (Int, Int)
 pushButton _ 0 = (0, 0)
 pushButton modMap n = (lows + nextLows, highs + nextHighs)
-  where (modMap', lows, highs) = evalState (sendPulses' "button" [("broadcaster", Low)]) (modMap, 0, 0)
+  where (modMap', lows, highs) = evalState (sendPulses [("button", "broadcaster", Low)]) (modMap, 0, 0)
         (nextLows, nextHighs)  = pushButton modMap' (n - 1)
