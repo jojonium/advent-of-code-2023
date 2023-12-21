@@ -19,10 +19,10 @@ main = do
       initMemo = Map.fromList (map (, maxBound) (Set.toList chart))
       initMemo' = foldr Map.delete initMemo [(27, 80), (85, 45)] -- delete unreachable spots
       memo = evalState (fillMemo chart w h (Set.fromList [s])) (initMemo', 0)
-  putStrLn $ "Part 1 (solve): " ++ show (solve memo 64)
+  putStrLn $ "Part 1: " ++ show (solve memo 64)
   putStrLn $ "Part 2: " ++ show (solve2 26501365)
-  let test = [let x = (65 + w * n) in (x, solveManually chart s w h x) | n <- [1, 2, 3]]
-  putStrLn $ "Quadratic fit this: " ++ show (unwords (map show test))
+  -- let test = [let x = (65 + w * n) in (x, solveManually chart s w h x) | n <- [1, 2, 3]]
+  -- putStrLn $ "Quadratic fit this: " ++ show (unwords (map show test))
 
 parse :: [String] -> Int -> Int -> (Coord, Points)
 parse ls w h = foldr folder ((0, 0), Set.empty) [(x, y) | x <- xs, y <- ys]
