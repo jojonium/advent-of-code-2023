@@ -19,7 +19,8 @@ main = do
       p1Maze  = toMaze False chart
       p2Maze  = toMaze True  chart
   putStrLn $ "Part 1: " ++ show (maximum (pathHelper p1Maze (Set.singleton start, start) goal))
-  putStrLn $ "Part 2: " ++ show (increasing 0 (pathHelper p2Maze (Set.singleton start, start) goal))
+  putStrLn "Part 2:"
+  mapM_ print (increasing 0 (pathHelper p2Maze (Set.singleton start, start) goal))
 
 increasing :: Int -> [Int] -> [Int]
 increasing _ [] = []
