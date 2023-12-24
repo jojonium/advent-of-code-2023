@@ -5,8 +5,8 @@ import qualified Data.Set as Set
 
 type Coord = (Int, Int)
 type Chart = Map.Map Coord Char
+type Maze  = Map.Map Coord [Coord]
 type SearchState  = (Set.Set Coord, Coord)
-type NeighborFunc = (SearchState -> [SearchState])
 
 main :: IO ()
 main = do
@@ -16,43 +16,47 @@ main = do
       chart = parse input w h
       start = (1, 0)
       goal  = (w - 2, h - 1)
-  putStrLn $ "Part 1: " ++ show (solve False chart start goal)
-  putStrLn $ "Part 2: " ++ show (solve True chart start goal)
+      p1Maze  = toMaze False chart
+      p2Maze  = toMaze True  chart
+  putStrLn $ "Part 1: " ++ show (maximum (pathHelper p1Maze (Set.singleton start, start) goal))
+  putStrLn $ "Part 2: " ++ show (increasing 0 (pathHelper p2Maze (Set.singleton start, start) goal))
 
-solve :: Bool -> Chart -> Coord -> Coord -> Int
-solve p2 chart start goal = 
-  let nf = neighbors p2 chart
-  in  maximum (map length (allPaths chart nf (Set.singleton start, start) goal)) - 1
+increasing :: Int -> [Int] -> [Int]
+increasing _ [] = []
+increasing prev (x:xs)
+  | x > prev = x : increasing x xs
+  | otherwise = increasing prev xs
 
 parse :: [String] -> Int -> Int -> Chart
 parse ls w h = foldr folder Map.empty [(x, y) | x <- xs, y <- ys]
   where xs = [0 .. w - 1]
         ys = [0 .. h - 1]
-        folder (x, y) = Map.insert (x, y) (ls !! y !! x)
+        folder (x, y) m = let p = ls !! y !! x
+                          in if p == '#' then m else Map.insert (x, y) p m
 
-neighbors :: Bool -> Chart -> SearchState -> [SearchState]
-neighbors p2 chart (seen, (x, y)) = 
-  if p2 then out [north, south, east, west] 
-  else case chart Map.! (x, y) of
-    '.' -> out [north, south, east, west]
-    '>' -> out [east]
-    'v' -> out [south]
-    '<' -> out [west]
-    '^' -> out [north]
-    _ -> error "Invalid char"
-  where north = (x, y - 1)
-        south = (x, y + 1)
-        east  = (x + 1, y)
-        west  = (x - 1, y)
-        isntSeen  = (`Set.notMember` seen)
-        validMove c
-          | Just n <- Map.lookup c chart = n /= '#'
-          | otherwise = False
+toMaze :: Bool -> Chart -> Maze
+toMaze p2 chart = Map.mapWithKey (neighbors p2 chart) chart
+
+neighbors :: Bool -> Chart -> Coord -> Char -> [Coord]
+neighbors p2 chart (x, y) char = filter (`Map.member` chart) potential
+  where
+    potential = if p2 then [north, south, east, west]
+      else case char of
+        '.' -> [north, south, east, west]
+        '>' -> [east]
+        'v' -> [south]
+        '<' -> [west]
+        '^' -> [north]
+        _ -> error $ "Invalid char " ++ [char]
+    north = (x, y - 1)
+    south = (x, y + 1)
+    east  = (x + 1, y)
+    west  = (x - 1, y)
+
+pathHelper :: Maze -> SearchState -> Coord -> [Int]
+pathHelper maze (seen, coord) end
+  | coord == end = [0]
+  | otherwise = [1 + nDist | node <- edges, nDist <- pathHelper maze (toSS node) end]
+  where edges  = filter (`Set.notMember` seen) (maze Map.! coord)
         toSS c = (Set.insert c seen, c)
-        out = map toSS . filter validMove . filter isntSeen
-
-allPaths :: Chart -> NeighborFunc -> SearchState -> Coord -> [[SearchState]]
-allPaths chart nf ss end
-  | snd ss == end = [[ss]]
-  | otherwise = [ss:path | nbr <- nf ss, path <- allPaths chart nf nbr end]
 
