@@ -49,6 +49,7 @@ library
       Day23
       Day24
       Day24P2
+      Day25
   other-modules:
       Paths_aoc2023
   hs-source-dirs:
